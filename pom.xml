@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    pom.xml = Maven's version of package.json.
+    It names the project, says which Java version to use, lists the libraries we depend on
+    and configures the build. Run builds with the wrapper (./mvnw), so nobody needs Maven installed.
+
+      ./mvnw spring-boot:run      ~  npm run dev    (starts the app; also starts MongoDB in Docker)
+      ./mvnw package              ~  a "build" step: produces target/basera-0.0.1-SNAPSHOT.jar
+      ./mvnw test                 ~  npm test
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Inheriting from Spring Boot's parent gives us tested, compatible versions of every library below,
+         which is why most dependencies have no <version> (like a lockfile someone else maintains). -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.1</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.basera</groupId>
+    <artifactId>basera</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>basera</name>
+    <description>Basera - an Airbnb-style stay booking platform with Host and Customer roles, built with Spring Boot, MongoDB and Thymeleaf.</description>
+
+    <properties>
+        <java.version>25</java.version>
+        <!-- Security fixes newer than the versions Spring Boot 4.1.1 ships with (checked on OSV.dev, 2026-10-16).
+             Tomcat 11.0.24 has 3 critical advisories (fixed in 11.0.25); Jackson 3.1.5 has several high ones
+             (fixed in 3.1.7). Remove these two lines once a newer Spring Boot release includes the fixes. -->
+        <tomcat.version>11.0.27</tomcat.version>
+        <jackson-bom.version>3.1.7</jackson-bom.version>
+    </properties>
+
+    <dependencies>
+        <!-- Web server + routing + JSON (replaces express, method-override, body parsing) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+        <!-- HTML templates (replaces ejs + ejs-mate) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <!-- Login, sessions, roles, password hashing (replaces passport, passport-local, passport-local-mongoose) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <!-- Lets templates ask "is someone logged in? are they a host?" -->
+        <dependency>
+            <groupId>org.thymeleaf.extras</groupId>
+            <artifactId>thymeleaf-extras-springsecurity6</artifactId>
+        </dependency>
+        <!-- MongoDB access (replaces mongoose) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
+        <!-- Input validation with annotations like @NotBlank (replaces joi) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- Development only: these are left out of the production jar automatically. -->
+        <!-- Auto-restart when code changes (like node with the watch flag) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+        <!-- Starts the MongoDB in compose.yaml when the app starts (our replacement for the in-memory database) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-docker-compose</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Starts a throw-away MongoDB in Docker for the integration tests
+             (the Node app's mongodb-memory-server did the same job). Docker must be running. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-mongodb</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Packages everything (our code + all libraries + a web server) into one runnable jar -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

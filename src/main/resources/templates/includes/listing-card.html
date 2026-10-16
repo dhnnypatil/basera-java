@@ -1,0 +1,22 @@
+<!--
+    One listing in a grid (views/includes/listing-card.ejs).
+    Parameters: listing, nights (0 = no dates picked; otherwise the card also shows the stay total).
+    ${listing.image.url()} - the photo is a Java record, so its value is read with url() rather than a getter.
+-->
+<a th:fragment="card(listing, nights)" th:href="@{/listings/{id}(id=${listing.id})}" class="listing-card">
+    <div class="img-wrap">
+        <img th:src="${listing.image.url()}" th:alt="${listing.title}" loading="lazy">
+        <span class="badge-category" th:text="${listing.category.label}">Rooms</span>
+    </div>
+    <div class="title-row">
+        <div class="title" th:text="${listing.location + ', ' + listing.country}">Location, Country</div>
+        <div th:if="${listing.averageRating != null}" class="rating"><i class="fa-solid fa-star"></i> [[${@fmt.rating(listing.averageRating)}]]</div>
+        <div th:if="${listing.averageRating == null}" class="rating text-muted-ll">New</div>
+    </div>
+    <div class="meta" th:text="${listing.title}">Title</div>
+    <div class="meta">Up to [[${listing.maxGuests}]] guests</div>
+    <div class="price">
+        <b th:text="${@fmt.price(listing.price)}">₹0</b> <span class="text-muted-ll">night</span>
+        <span th:if="${nights > 0}" class="text-muted-ll">· <u th:text="${@fmt.price(listing.price * nights) + ' total'}">total</u></span>
+    </div>
+</a>

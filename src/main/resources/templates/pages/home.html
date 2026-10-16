@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<!--
+    The landing page (views/pages/home.ejs). featuredListings = the 8 best-rated stays (ListingService.featured).
+
+    Thymeleaf vs EJS, using this page as the example:
+      <% for (const listing of featuredListings) { %> ... <% } %>  ->  th:each="listing : ${featuredListings}"
+      <%- include("../includes/listing-card.ejs", { listing }) %>  ->  th:replace="~{includes/listing-card :: card(${listing}, 0)}"
+    Thymeleaf attributes sit on real HTML tags, so the file is still valid HTML you can open in a browser.
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layouts/boilerplate :: layout(~{::content})}">
+<body>
+<th:block th:fragment="content">
+<!-- ===== Hero + search ===== -->
+<section class="hero">
+    <div class="container py-5">
+        <h1>Find a place that feels like home - anywhere.</h1>
+        <p class="lead">Unique stays hosted by locals. Book in seconds, or earn by sharing your own space.</p>
+
+        <form class="search-card" th:action="@{/listings}" method="GET">
+            <div class="row g-2 align-items-end">
+                <div class="col-lg-4 col-md-12">
+                    <label for="hero-q">Where</label>
+                    <input id="hero-q" name="q" class="form-control" placeholder="Search destinations">
+                </div>
+                <div class="col-lg-2 col-6">
+                    <label for="hero-in">Check in</label>
+                    <input id="hero-in" name="checkIn" type="date" class="form-control" th:min="${@fmt.todayIso()}" data-checkin>
+                </div>
+                <div class="col-lg-2 col-6">
+                    <label for="hero-out">Check out</label>
+                    <input id="hero-out" name="checkOut" type="date" class="form-control" th:min="${@fmt.todayIso()}" data-checkout>
+                </div>
+                <div class="col-lg-2 col-6">
+                    <label for="hero-guests">Guests</label>
+                    <input id="hero-guests" name="guests" type="number" min="1" max="20" class="form-control" placeholder="Any">
+                </div>
+                <div class="col-lg-2 col-6 d-grid">
+                    <button class="btn btn-brand"><i class="fa-solid fa-magnifying-glass me-2"></i>Search</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<div class="container">
+    <!-- ===== Categories ===== -->
+    <section class="mt-4">
+        <div th:replace="~{includes/category-bar :: categoryBar(${categoryLinks})}"></div>
+    </section>
+
+    <!-- ===== Featured stays ===== -->
+    <section class="mt-5">
+        <div class="d-flex justify-content-between align-items-end">
+            <div>
+                <h2 class="section-title">Guest favourites</h2>
+                <p class="section-sub">Our highest-rated stays right now.</p>
+            </div>
+            <a th:href="@{/listings}" class="btn btn-outline-ink mb-4">Show all</a>
+        </div>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
+            <div class="col" th:each="listing : ${featuredListings}">
+                <a th:replace="~{includes/listing-card :: card(${listing}, 0)}"></a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Two ways to use Basera (Customer / Host) ===== -->
+    <section class="mt-5 pt-3">
+        <h2 class="section-title">Two ways to use Basera</h2>
+        <p class="section-sub">Pick a role when you sign up - just like choosing Candidate or Recruiter.</p>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="persona-card">
+                    <div class="persona-icon" style="background: var(--brand-soft); color: var(--brand-dark);"><i class="fa-solid fa-suitcase-rolling"></i></div>
+                    <h3 class="h4 fw-bold">Travel as a Customer</h3>
+                    <ul>
+                        <li>Search by place, dates, guests and budget</li>
+                        <li>See only stays that are free for your dates</li>
+                        <li>Book instantly with a clear price breakdown</li>
+                        <li>Change dates or cancel from "My trips"</li>
+                    </ul>
+                    <a th:href="@{/signup(role='customer')}" class="btn btn-brand mt-2">Start exploring</a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="persona-card">
+                    <div class="persona-icon" style="background: #1f2937; color: #fff;"><i class="fa-solid fa-house-user"></i></div>
+                    <h3 class="h4 fw-bold">Earn as a Host</h3>
+                    <ul>
+                        <li>List your place in under two minutes</li>
+                        <li>Edit or remove your listings any time</li>
+                        <li>Track every booking from one dashboard</li>
+                        <li>See your upcoming guests and earnings</li>
+                    </ul>
+                    <a th:href="@{/signup(role='host')}" class="btn btn-outline-ink mt-2">Become a host</a>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+</th:block>
+</body>
+</html>

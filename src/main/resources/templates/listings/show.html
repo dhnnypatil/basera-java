@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<!--
+    One listing (views/listings/show.ejs): details, map, booking card and reviews.
+    From web/ListingController: listing, bookedRanges, isOwner, isCustomer, alreadyReviewed.
+    (The Node view worked out isCustomer / alreadyReviewed itself; the controller does it here.)
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layouts/boilerplate :: layout(~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="container mt-4" th:with="reviewCount=${#lists.size(listing.reviews)}">
+    <!-- ===== Title ===== -->
+    <h1 class="detail-title" th:text="${listing.title}">Title</h1>
+    <div class="d-flex flex-wrap gap-3 align-items-center mb-3">
+        <th:block th:if="${listing.averageRating != null}">
+            <span class="fw-semibold"><i class="fa-solid fa-star"></i> [[${@fmt.rating(listing.averageRating)}]]</span>
+            <a href="#reviews" class="text-dark" th:text="${@fmt.plural(reviewCount, 'review', 'reviews')}">reviews</a>
+        </th:block>
+        <span th:if="${listing.averageRating == null}" class="fw-semibold"><i class="fa-solid fa-star"></i> New</span>
+        <span class="text-muted-ll">·</span>
+        <span class="fw-semibold" th:text="${listing.location + ', ' + listing.country}">Location</span>
+    </div>
+
+    <img th:src="${listing.image.url()}" th:alt="${listing.title}" class="detail-hero-img">
+
+    <div class="row mt-4 gx-lg-5">
+        <!-- ===== Left column: details ===== -->
+        <div class="col-lg-7">
+            <div class="host-row">
+                <span class="avatar avatar-lg" th:text="${#strings.substring(listing.owner.username, 0, 1)}">h</span>
+                <div>
+                    <div class="fw-bold">Hosted by [[${listing.owner.username}]]</div>
+                    <div class="text-muted-ll small">Hosting since [[${@fmt.date(listing.owner.createdAt)}]]</div>
+                </div>
+            </div>
+
+            <div class="feature-list">
+                <span class="feature-pill"><i th:class="${listing.category.icon}"></i>[[${listing.category.label}]]</span>
+                <span class="feature-pill"><i class="fa-solid fa-user-group"></i>Up to [[${listing.maxGuests}]] guests</span>
+                <span class="feature-pill"><i class="fa-solid fa-calendar-check"></i>Instant booking</span>
+            </div>
+
+            <div class="py-4 border-bottom">
+                <h2 class="h5 fw-bold">About this place</h2>
+                <p class="mb-0" style="white-space: pre-line;" th:text="${#strings.isEmpty(listing.description) ? 'The host hasn''t added a description yet.' : listing.description}">Description</p>
+            </div>
+
+            <div th:unless="${bookedRanges.empty}" class="py-4 border-bottom">
+                <h2 class="h5 fw-bold">Already booked</h2>
+                <p class="text-muted-ll small mb-2">These dates are taken - pick dates around them.</p>
+                <div class="d-flex flex-wrap gap-2">
+                    <span th:each="range : ${bookedRanges}" class="feature-pill">[[${@fmt.date(range.checkIn)}]] – [[${@fmt.date(range.checkOut)}]]</span>
+                </div>
+            </div>
+
+            <div th:if="${listing.geometry != null}" class="py-4 border-bottom">
+                <h2 class="h5 fw-bold">Where you'll be</h2>
+                <p class="text-muted-ll" th:text="${listing.location + ', ' + listing.country}">Location</p>
+                <!-- GeoJSON order: [longitude, latitude] - map.js swaps them for Leaflet -->
+                <div id="map" th:data-coordinates="${'[' + listing.geometry.x + ',' + listing.geometry.y + ']'}" th:data-title="${listing.title}"></div>
+            </div>
+        </div>
+
+        <!-- ===== Right column: booking card ===== -->
+        <div class="col-lg-5">
+            <aside class="booking-card">
+                <div class="mb-3"><span class="h4 fw-bold" th:text="${@fmt.price(listing.price)}">₹0</span> <span class="text-muted-ll">night</span></div>
+
+                <th:block th:if="${isOwner}">
+                    <p class="text-muted-ll">This is your listing.</p>
+                    <div class="d-flex gap-2">
+                        <a th:href="@{/listings/{id}/edit(id=${listing.id})}" class="btn btn-brand flex-fill"><i class="fa-solid fa-pen me-1"></i>Edit</a>
+                        <form th:action="@{/listings/{id}(id=${listing.id})}" th:method="delete" class="flex-fill" data-confirm="Delete this listing? Its reviews and bookings will be removed too.">
+                            <button class="btn btn-outline-danger w-100"><i class="fa-solid fa-trash me-1"></i>Delete</button>
+                        </form>
+                    </div>
+                </th:block>
+
+                <th:block th:if="${!isOwner and currUser == null}">
+                    <p class="text-muted-ll">Log in with a customer account to book this place.</p>
+                    <a th:href="@{/login(role='customer')}" class="btn btn-brand w-100">Log in to book</a>
+                </th:block>
+
+                <p th:if="${!isOwner and currUser != null and !isCustomer}" class="text-muted-ll mb-0">You're logged in as a <b>host</b>. Switch to a customer account to make bookings.</p>
+
+                <form th:if="${!isOwner and isCustomer}" th:action="@{/bookings}" method="POST" id="booking-form" class="needs-validation" novalidate
+                      th:data-price="${listing.price}" th:data-fee-rate="${serviceFeeRate}">
+                    <input type="hidden" name="listing" th:value="${listing.id}">
+                    <div class="date-group mb-3">
+                        <div class="row g-0">
+                            <div class="col-6 border-end">
+                                <label for="checkIn">Check-in</label>
+                                <input id="checkIn" name="checkIn" type="date" th:min="${@fmt.todayIso()}" required data-checkin>
+                            </div>
+                            <div class="col-6">
+                                <label for="checkOut">Check-out</label>
+                                <input id="checkOut" name="checkOut" type="date" th:min="${@fmt.todayIso()}" required data-checkout>
+                            </div>
+                        </div>
+                        <div class="row g-0 border-top">
+                            <div class="col-12">
+                                <label for="guests">Guests</label>
+                                <select id="guests" name="guests">
+                                    <option th:each="n : ${#numbers.sequence(1, listing.maxGuests)}" th:value="${n}" th:text="${@fmt.plural(n, 'guest', 'guests')}">1 guest</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-brand w-100 py-2">Reserve</button>
+                    <p class="text-center text-muted-ll small mt-2 mb-0">No payment is taken online - pay at the property</p>
+
+                    <!-- Filled in by /js/booking.js when both dates are picked -->
+                    <div class="price-breakdown mt-3 d-none" id="price-breakdown">
+                        <div class="row-line"><u id="pb-nights"></u><span id="pb-subtotal"></span></div>
+                        <div class="row-line"><u>Service fee ([[${#numbers.formatDecimal(serviceFeeRate * 100, 1, 0)}]]%)</u><span id="pb-fee"></span></div>
+                        <div class="row-line total"><span>Total</span><span id="pb-total"></span></div>
+                    </div>
+                </form>
+            </aside>
+        </div>
+    </div>
+
+    <!-- ===== Reviews ===== -->
+    <section id="reviews" class="mt-5 pt-4 border-top">
+        <h2 class="h4 fw-bold mb-4">
+            <th:block th:if="${listing.averageRating != null}"><i class="fa-solid fa-star"></i> [[${@fmt.rating(listing.averageRating)}]] · [[${@fmt.plural(reviewCount, 'review', 'reviews')}]]</th:block>
+            <th:block th:if="${listing.averageRating == null}">No reviews yet</th:block>
+        </h2>
+
+        <form th:if="${isCustomer and !alreadyReviewed}" th:action="@{/listings/{id}/reviews(id=${listing.id})}" method="POST" class="needs-validation mb-5" novalidate style="max-width: 640px;">
+            <label class="form-label d-block">Your rating</label>
+            <div class="star-input mb-3">
+                <th:block th:each="star : ${#numbers.sequence(5, 1, -1)}">
+                    <input type="radio" th:id="'star' + ${star}" name="rating" th:value="${star}" th:checked="${star == 5}">
+                    <label th:for="'star' + ${star}" th:title="${star} + ' stars'"><i class="fa-solid fa-star"></i></label>
+                </th:block>
+            </div>
+            <label for="comment" class="form-label">Your review</label>
+            <textarea id="comment" name="comment" rows="3" class="form-control mb-3" placeholder="How was your stay?" required></textarea>
+            <div class="invalid-feedback">Please write a few words.</div>
+            <button class="btn btn-outline-ink">Post review</button>
+        </form>
+
+        <div class="row row-cols-1 row-cols-md-2 g-3">
+            <div class="col" th:each="review : ${listing.reviews}">
+                <div class="review-card">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="avatar" th:text="${review.author != null ? #strings.substring(review.author.username, 0, 1) : '?'}">?</span>
+                        <div>
+                            <div class="fw-bold" th:text="${review.author != null ? review.author.username : 'Deleted user'}">user</div>
+                            <div class="text-muted-ll small" th:text="${@fmt.date(review.createdAt)}">date</div>
+                        </div>
+                    </div>
+                    <div class="text-star mb-1">
+                        <i th:each="star : ${#numbers.sequence(1, 5)}" th:class="${star <= review.rating ? 'fa-solid' : 'fa-regular'} + ' fa-star'"></i>
+                    </div>
+                    <p class="mb-2" th:text="${review.comment}">comment</p>
+                    <form th:if="${currUser != null and review.author != null and review.author.id == currUser.id}"
+                          th:action="@{/listings/{id}/reviews/{reviewId}(id=${listing.id}, reviewId=${review.id})}" th:method="delete" data-confirm="Delete your review?">
+                        <button class="btn btn-sm btn-link text-danger p-0">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script th:src="@{/js/map.js}"></script>
+<script th:src="@{/js/booking.js}"></script>
+</th:block>
+</body>
+</html>

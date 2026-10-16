@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!--
+    Sign up page (views/users/signup.ejs).
+    `signupForm` is the dto/SignupForm the controller passes in. When the form comes back with an error,
+    it still holds what the user typed, so th:value refills the inputs (never the password).
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layouts/boilerplate :: layout(~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="container">
+    <div class="auth-wrap">
+        <div class="auth-card row g-0">
+            <div class="col-md-5">
+                <div class="auth-side">
+                    <h2 class="h4 fw-bold mb-4">Join Basera</h2>
+                    <div class="perk"><i class="fa-solid fa-magnifying-glass"></i><div>Search stays by place, dates, guests and budget.</div></div>
+                    <div class="perk"><i class="fa-solid fa-calendar-check"></i><div>Book instantly - double bookings are impossible.</div></div>
+                    <div class="perk"><i class="fa-solid fa-indian-rupee-sign"></i><div>Hosts earn from their space and see every booking in one place.</div></div>
+                </div>
+            </div>
+
+            <div class="col-md-7">
+                <div class="auth-form">
+                    <h1 class="h3 fw-bold mb-4">Create your account</h1>
+
+                    <form th:action="@{/signup}" method="POST" class="needs-validation" novalidate>
+                        <div class="role-switch" role="radiogroup" aria-label="Sign up as">
+                            <input type="radio" name="role" id="role-customer" value="customer" th:checked="${signupForm.role == 'customer'}">
+                            <label for="role-customer"><i class="fa-solid fa-suitcase-rolling me-1"></i> Customer<small>I want to book stays</small></label>
+                            <input type="radio" name="role" id="role-host" value="host" th:checked="${signupForm.role == 'host'}">
+                            <label for="role-host"><i class="fa-solid fa-house-user me-1"></i> Host (Admin)<small>I want to list places</small></label>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input id="username" name="username" th:value="${signupForm.username}" class="form-control" pattern="[A-Za-z0-9]{3,30}" autocomplete="username" required>
+                            <div class="form-text">3-30 letters or numbers.</div>
+                            <div class="invalid-feedback">Use 3-30 letters or numbers, no spaces.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input id="email" name="email" th:value="${signupForm.email}" type="email" class="form-control" autocomplete="email" required>
+                            <div class="invalid-feedback">Enter a valid email.</div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="password" class="form-label">Password</label>
+                            <input id="password" name="password" type="password" minlength="6" maxlength="72" class="form-control" autocomplete="new-password" required>
+                            <div class="invalid-feedback">At least 6 characters.</div>
+                        </div>
+                        <button class="btn btn-brand w-100 py-2">Sign up</button>
+                    </form>
+
+                    <p class="text-center mt-3 mb-0">Already have an account? <a th:href="@{/login(role=${signupForm.role})}" class="fw-semibold">Log in</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>
+</body>
+</html>

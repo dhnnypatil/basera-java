@@ -1,0 +1,66 @@
+<!--
+    Top navigation (views/includes/navbar.ejs).
+    currUser and currentPath come from web/GlobalModelAttributes (the Node app's res.locals).
+    ${currUser.host} calls CurrentUser.isHost().
+-->
+<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-ll sticky-top">
+    <div class="container">
+        <a class="brand-logo" th:href="@{/}"><i class="fa-regular fa-compass"></i> Basera</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNav">
+            <!-- Quick search (hidden on the home page, which has its own big search) -->
+            <form th:if="${currentPath != '/'}" class="nav-search mx-lg-auto my-3 my-lg-0" th:action="@{/listings}" method="GET" role="search">
+                <input type="search" name="q" placeholder="Search destinations" aria-label="Search destinations">
+                <button type="submit" aria-label="Search"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </form>
+
+            <div class="navbar-nav ms-auto align-items-lg-center gap-1">
+                <a class="nav-link" th:href="@{/listings}">Explore</a>
+
+                <th:block th:if="${currUser == null}">
+                    <a class="nav-link" th:href="@{/signup(role='host')}">Become a host</a>
+                    <a class="nav-link" th:href="@{/login}">Log in</a>
+                    <a class="btn btn-brand ms-lg-2" th:href="@{/signup}">Sign up</a>
+                </th:block>
+
+                <th:block th:if="${currUser != null}">
+                    <th:block th:if="${currUser.host}">
+                        <a class="nav-link" th:href="@{/dashboard}">Dashboard</a>
+                        <a class="nav-link" th:href="@{/listings/new}"><i class="fa-solid fa-plus me-1"></i>List your place</a>
+                    </th:block>
+                    <a th:unless="${currUser.host}" class="nav-link" th:href="@{/bookings}">My trips</a>
+
+                    <div class="dropdown ms-lg-2">
+                        <button class="user-menu-btn" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Account menu">
+                            <i class="fa-solid fa-bars"></i>
+                            <span class="avatar" th:text="${#strings.substring(currUser.username, 0, 1)}">u</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                            <li class="px-3 py-2">
+                                <div class="fw-bold" th:text="${currUser.username}">username</div>
+                                <span class="role-badge" th:classappend="'role-' + ${currUser.role.param}" th:text="${currUser.role.label}">Customer</span>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <th:block th:if="${currUser.host}">
+                                <li><a class="dropdown-item" th:href="@{/dashboard}">Host dashboard</a></li>
+                                <li><a class="dropdown-item" th:href="@{/listings/new}">List a new place</a></li>
+                            </th:block>
+                            <li th:unless="${currUser.host}"><a class="dropdown-item" th:href="@{/bookings}">My trips</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <!-- th:action (not action) so Thymeleaf adds the hidden CSRF token -->
+                                <form th:action="@{/logout}" method="POST">
+                                    <button class="dropdown-item">Log out</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </th:block>
+            </div>
+        </div>
+    </div>
+</nav>

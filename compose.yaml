@@ -1,0 +1,13 @@
+# Local development database.
+#
+# The Node version started a throw-away in-memory MongoDB when MONGO_URL was empty.
+# Here, `./mvnw spring-boot:run` starts this MongoDB container automatically (Docker Desktop must be running)
+# and Spring Boot connects to it - no connection string needed. Unlike the in-memory DB, data survives restarts.
+# To wipe it: `docker compose down` (then the app re-seeds demo data on the next start).
+services:
+  mongodb:
+    image: 'mongo:8.0'
+    environment:
+      - 'MONGO_INITDB_DATABASE=basera'
+    ports:
+      - '27017'

@@ -1,0 +1,67 @@
+<!--
+    Shared form for creating and editing a listing (views/includes/listing-form.ejs).
+    Parameters: action (form URL), method ('post' or 'put'), submitLabel, form (a dto/ListingForm),
+    currentImageUrl (the photo it has now, or null for a new listing).
+
+    th:method="put" makes Thymeleaf send a POST with a hidden _method=put field, which Spring turns back
+    into a PUT (the Node app wrote ?_method=PUT in the URL for method-override).
+    enctype="multipart/form-data" is needed to send a file, as in Node.
+-->
+<form th:fragment="listingForm(action, method, submitLabel, form, currentImageUrl)"
+      th:action="${action}" th:method="${method}" enctype="multipart/form-data" class="needs-validation" novalidate>
+    <div class="mb-3">
+        <label for="title" class="form-label">Title</label>
+        <input id="title" name="title" class="form-control" placeholder="e.g. Sunny sea-view villa" th:value="${form.title}" maxlength="100" required>
+        <div class="invalid-feedback">Please give your place a title.</div>
+    </div>
+
+    <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <textarea id="description" name="description" class="form-control" rows="4" placeholder="What makes your place special?" th:text="${form.description}"></textarea>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="category" class="form-label">Category</label>
+            <select id="category" name="category" class="form-select" required>
+                <option th:each="c : ${categories}" th:value="${c.label}" th:text="${c.label}"
+                        th:selected="${form.category != null and #strings.equalsIgnoreCase(form.category, c.label)}">Rooms</option>
+            </select>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <label for="price" class="form-label">Price / night (₹)</label>
+            <input id="price" name="price" type="number" min="0" class="form-control" placeholder="2500" th:value="${form.price}" required>
+            <div class="invalid-feedback">Enter a price of 0 or more.</div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <label for="maxGuests" class="form-label">Max guests</label>
+            <input id="maxGuests" name="maxGuests" type="number" min="1" max="20" class="form-control" th:value="${form.maxGuests ?: 2}" required>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="location" class="form-label">Location</label>
+            <input id="location" name="location" class="form-control" placeholder="e.g. Calangute, Goa" th:value="${form.location}" required>
+            <div class="invalid-feedback">Where is your place?</div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="country" class="form-label">Country</label>
+            <input id="country" name="country" class="form-control" placeholder="e.g. India" th:value="${form.country}" required>
+            <div class="invalid-feedback">Please enter a country.</div>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Photo</label>
+        <div th:if="${currentImageUrl != null}" class="mb-2 d-flex align-items-center gap-3">
+            <img th:src="${currentImageUrl}" alt="Current photo" class="thumb" style="width: 120px; height: 80px;">
+            <span class="text-muted-ll small">Current photo - leave the fields below empty to keep it.</span>
+        </div>
+        <input name="image" type="file" accept="image/png, image/jpeg, image/webp" class="form-control mb-2" aria-label="Upload a photo">
+        <input name="imageInput.url" type="url" class="form-control" placeholder="...or paste an image URL" aria-label="Image URL" th:value="${form.imageInput?.url}">
+        <div class="form-text">Upload a JPG/PNG/WebP up to 5 MB, or paste a link. No photo? We'll use a nice default.</div>
+    </div>
+
+    <button class="btn btn-brand px-4" th:text="${submitLabel}">Save</button>
+</form>

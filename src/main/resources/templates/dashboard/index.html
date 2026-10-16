@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<!-- The host dashboard (views/dashboard/index.ejs). listings, bookings and stats come from web/DashboardController. -->
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layouts/boilerplate :: layout(~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="container my-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Host dashboard</h1>
+            <p class="text-muted-ll mb-0">Welcome back, [[${currUser.username}]]. Here's how your places are doing.</p>
+        </div>
+        <a th:href="@{/listings/new}" class="btn btn-brand"><i class="fa-solid fa-plus me-1"></i>List a new place</a>
+    </div>
+
+    <!-- ===== Stats ===== -->
+    <div class="row g-3 mb-5">
+        <div class="col-md-4">
+            <div class="stat-tile">
+                <div class="label"><i class="fa-solid fa-house me-1"></i> Listings</div>
+                <div class="value" th:text="${stats.totalListings}">0</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-tile">
+                <div class="label"><i class="fa-solid fa-calendar-check me-1"></i> Upcoming bookings</div>
+                <div class="value" th:text="${stats.upcomingBookings}">0</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-tile">
+                <div class="label"><i class="fa-solid fa-indian-rupee-sign me-1"></i> Earnings (confirmed)</div>
+                <div class="value" th:text="${@fmt.price(stats.totalEarnings)}">₹0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Bookings received ===== -->
+    <h2 class="h5 fw-bold mb-3">Bookings on your places</h2>
+    <p th:if="${bookings.empty}" class="text-muted-ll mb-5">No bookings yet. They'll show up here as soon as a guest reserves one of your places.</p>
+    <div th:unless="${bookings.empty}" class="table-responsive mb-5">
+        <table class="table table-ll align-middle">
+            <thead><tr><th>Listing</th><th>Guest</th><th>Dates</th><th>Guests</th><th>Payout</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+                <tr th:each="booking : ${bookings}">
+                    <td class="fw-semibold"><a th:href="@{/listings/{id}(id=${booking.listing.id})}" class="text-dark" th:text="${booking.listing.title}">Title</a></td>
+                    <td>
+                        [[${booking.guest != null ? booking.guest.username : 'Deleted user'}]]
+                        <div th:if="${booking.guest != null}" class="text-muted-ll small" th:text="${booking.guest.email}">email</div>
+                    </td>
+                    <td class="text-nowrap">[[${@fmt.date(booking.checkIn)}]] – [[${@fmt.date(booking.checkOut)}]]</td>
+                    <td th:text="${booking.guests}">1</td>
+                    <td th:text="${@fmt.price(booking.nights * booking.pricePerNight)}">₹0</td>
+                    <td><span class="status-badge" th:classappend="'status-' + ${booking.displayStatus}" th:text="${booking.displayStatus}">confirmed</span></td>
+                    <td class="text-end">
+                        <form th:if="${booking.upcoming}" th:action="@{/bookings/{id}(id=${booking.id})}" th:method="delete" data-confirm="Cancel this guest's booking?">
+                            <button class="btn btn-sm btn-outline-danger">Cancel</button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ===== Your listings ===== -->
+    <h2 class="h5 fw-bold mb-3">Your listings</h2>
+    <div th:if="${listings.empty}" class="empty-state border rounded-4 py-5">
+        <i class="fa-solid fa-house-chimney d-block"></i>
+        <h3 class="h6 fw-bold text-dark">You haven't listed a place yet</h3>
+        <a th:href="@{/listings/new}" class="btn btn-brand mt-2">List your first place</a>
+    </div>
+    <div th:unless="${listings.empty}" class="table-responsive">
+        <table class="table table-ll align-middle">
+            <thead><tr><th>Place</th><th>Category</th><th>Price / night</th><th>Rating</th><th class="text-end">Actions</th></tr></thead>
+            <tbody>
+                <tr th:each="listing : ${listings}">
+                    <td>
+                        <a th:href="@{/listings/{id}(id=${listing.id})}" class="d-flex align-items-center gap-2 text-decoration-none text-dark">
+                            <img th:src="${listing.image.url()}" alt="" class="thumb">
+                            <div>
+                                <div class="fw-semibold" th:text="${listing.title}">Title</div>
+                                <div class="text-muted-ll small" th:text="${listing.location + ', ' + listing.country}">Location</div>
+                            </div>
+                        </a>
+                    </td>
+                    <td th:text="${listing.category.label}">Rooms</td>
+                    <td th:text="${@fmt.price(listing.price)}">₹0</td>
+                    <td>
+                        <th:block th:if="${listing.averageRating != null}"><i class="fa-solid fa-star"></i> [[${@fmt.rating(listing.averageRating)}]] <span class="text-muted-ll">([[${#lists.size(listing.reviews)}]])</span></th:block>
+                        <span th:if="${listing.averageRating == null}" class="text-muted-ll">No reviews</span>
+                    </td>
+                    <td class="text-end text-nowrap">
+                        <a th:href="@{/listings/{id}/edit(id=${listing.id})}" class="btn btn-sm btn-outline-ink">Edit</a>
+                        <form th:action="@{/listings/{id}(id=${listing.id})}" th:method="delete" class="d-inline" data-confirm="Delete this listing? Its reviews and bookings will be removed too.">
+                            <button class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</th:block>
+</body>
+</html>

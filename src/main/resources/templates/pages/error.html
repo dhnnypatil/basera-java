@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<!--
+    Error page (views/pages/error.ejs), shown by web/WebExceptionHandler.
+    errorStatus / errorMessage instead of Node's status / message: "error" is taken by the flash messages.
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layouts/boilerplate :: layout(~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="container">
+    <div class="empty-state">
+        <div class="display-1 fw-bold" style="color: var(--brand);" th:text="${errorStatus}">404</div>
+        <h1 class="h3 fw-bold text-dark mt-2" th:text="${errorStatus == 404 ? 'We can''t find that page' : 'Something went wrong'}">We can't find that page</h1>
+        <p class="mb-4" th:text="${errorMessage}">Page not found.</p>
+        <a th:href="@{/listings}" class="btn btn-brand">Back to exploring</a>
+    </div>
+</div>
+</th:block>
+</body>
+</html>

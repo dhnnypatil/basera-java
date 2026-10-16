@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<!-- Edit a listing (views/listings/edit.ejs). `listing` is the saved listing, `listingForm` the values in the form. -->
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layouts/boilerplate :: layout(~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="container my-4" style="max-width: 760px;">
+    <a th:href="@{/listings/{id}(id=${listing.id})}" class="text-muted-ll small text-decoration-none"><i class="fa-solid fa-arrow-left me-1"></i>Back to listing</a>
+    <h1 class="h3 fw-bold mt-2 mb-4">Edit your listing</h1>
+    <form th:replace="~{includes/listing-form :: listingForm(@{/listings/{id}(id=${listing.id})}, 'put', 'Save changes', ${listingForm}, ${listing.image.url()})}"></form>
+</div>
+</th:block>
+</body>
+</html>

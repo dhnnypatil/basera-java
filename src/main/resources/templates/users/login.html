@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<!--
+    Log in page (views/users/login.ejs). `role` is "customer" or "host" and picks the tab (web/UserController).
+    The form posts to /login, which Spring Security handles (config/SecurityConfig).
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layouts/boilerplate :: layout(~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="container">
+    <div class="auth-wrap">
+        <div class="auth-card row g-0">
+            <!-- Left: what each role can do -->
+            <div class="col-md-5">
+                <div class="auth-side">
+                    <h2 class="h4 fw-bold mb-4">Welcome back</h2>
+                    <div class="perk"><i class="fa-solid fa-suitcase-rolling"></i><div><b>Customers</b> search, book and manage their trips.</div></div>
+                    <div class="perk"><i class="fa-solid fa-house-user"></i><div><b>Hosts</b> list places, edit them and track bookings from a dashboard.</div></div>
+                    <div class="perk"><i class="fa-solid fa-shield-halved"></i><div>Each account has one role - choose the tab that matches yours.</div></div>
+                </div>
+            </div>
+
+            <!-- Right: the form -->
+            <div class="col-md-7">
+                <div class="auth-form">
+                    <h1 class="h3 fw-bold mb-4">Log in</h1>
+
+                    <!-- th:action adds the hidden CSRF token -->
+                    <form th:action="@{/login}" method="POST" class="needs-validation" novalidate>
+                        <!-- Role tabs: plain radio buttons styled as a segmented switch -->
+                        <div class="role-switch" role="radiogroup" aria-label="Log in as">
+                            <input type="radio" name="role" id="role-customer" value="customer" th:checked="${role == 'customer'}">
+                            <label for="role-customer"><i class="fa-solid fa-suitcase-rolling me-1"></i> Customer<small>I want to book stays</small></label>
+                            <input type="radio" name="role" id="role-host" value="host" th:checked="${role == 'host'}">
+                            <label for="role-host"><i class="fa-solid fa-house-user me-1"></i> Host (Admin)<small>I want to list places</small></label>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input id="username" name="username" class="form-control" autocomplete="username" required>
+                            <div class="invalid-feedback">Enter your username.</div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="password" class="form-label">Password</label>
+                            <input id="password" name="password" type="password" class="form-control" autocomplete="current-password" required>
+                            <div class="invalid-feedback">Enter your password.</div>
+                        </div>
+                        <button class="btn btn-brand w-100 py-2">Log in</button>
+                    </form>
+
+                    <p class="text-center mt-3 mb-4">New here? <a th:href="@{/signup(role=${role})}" class="fw-semibold">Create an account</a></p>
+
+                    <div class="demo-box">
+                        <b>Demo accounts</b> (password <code>password123</code>)<br>
+                        Customer: <code>democustomer</code> &nbsp;·&nbsp; Host: <code>demohost</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>
+</body>
+</html>

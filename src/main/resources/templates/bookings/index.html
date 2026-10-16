@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<!-- A customer's trips (views/bookings/index.ejs). `upcoming` and `past` come from web/BookingController. -->
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layouts/boilerplate :: layout(~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="container my-4">
+    <h1 class="h3 fw-bold">My trips</h1>
+    <p class="text-muted-ll">Manage upcoming stays and look back at past ones.</p>
+
+    <!-- ===== Upcoming ===== -->
+    <h2 class="h5 fw-bold mt-4 mb-3">Upcoming</h2>
+    <div th:if="${upcoming.empty}" class="empty-state border rounded-4 py-5">
+        <i class="fa-solid fa-suitcase-rolling d-block"></i>
+        <h3 class="h6 fw-bold text-dark">No trips booked... yet!</h3>
+        <p>Time to dust off your bags and start planning your next adventure.</p>
+        <a th:href="@{/listings}" class="btn btn-brand">Start searching</a>
+    </div>
+    <div th:unless="${upcoming.empty}" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <div class="col" th:each="booking : ${upcoming}">
+            <div class="trip-card">
+                <a th:if="${booking.listing != null}" th:href="@{/listings/{id}(id=${booking.listing.id})}"><img th:src="${booking.listing.image.url()}" th:alt="${booking.listing.title}"></a>
+                <div class="body">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <h3 class="h6 fw-bold mb-1" th:text="${booking.listing != null ? booking.listing.title : 'Listing removed'}">Title</h3>
+                        <span class="status-badge" th:classappend="'status-' + ${booking.displayStatus}" th:text="${booking.displayStatus}">confirmed</span>
+                    </div>
+                    <div th:if="${booking.listing != null}" class="text-muted-ll small mb-2" th:text="${booking.listing.location + ', ' + booking.listing.country}">Location</div>
+                    <div class="small mb-1"><i class="fa-regular fa-calendar me-2"></i>[[${@fmt.date(booking.checkIn)}]] – [[${@fmt.date(booking.checkOut)}]] ([[${@fmt.plural(booking.nights, 'night', 'nights')}]])</div>
+                    <div class="small mb-1"><i class="fa-solid fa-user-group me-2"></i>[[${@fmt.plural(booking.guests, 'guest', 'guests')}]]</div>
+                    <div class="small mb-3"><i class="fa-solid fa-receipt me-2"></i><b th:text="${@fmt.price(booking.totalPrice)}">₹0</b> total</div>
+                    <div class="d-flex gap-2 mt-auto">
+                        <a th:href="@{/bookings/{id}/edit(id=${booking.id})}" class="btn btn-sm btn-outline-ink flex-fill">Change dates</a>
+                        <form th:action="@{/bookings/{id}(id=${booking.id})}" th:method="delete" class="flex-fill" data-confirm="Cancel this booking?">
+                            <button class="btn btn-sm btn-outline-danger w-100">Cancel</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Past & cancelled ===== -->
+    <th:block th:unless="${past.empty}">
+        <h2 class="h5 fw-bold mt-5 mb-3">Past &amp; cancelled</h2>
+        <div class="table-responsive">
+            <table class="table table-ll align-middle">
+                <thead><tr><th>Stay</th><th>Dates</th><th>Guests</th><th>Total</th><th>Status</th></tr></thead>
+                <tbody>
+                    <tr th:each="booking : ${past}">
+                        <td>
+                            <a th:if="${booking.listing != null}" th:href="@{/listings/{id}(id=${booking.listing.id})}" class="d-flex align-items-center gap-2 text-decoration-none text-dark">
+                                <img th:src="${booking.listing.image.url()}" alt="" class="thumb">
+                                <span class="fw-semibold" th:text="${booking.listing.title}">Title</span>
+                            </a>
+                            <th:block th:if="${booking.listing == null}">Listing removed</th:block>
+                        </td>
+                        <td class="text-nowrap">[[${@fmt.date(booking.checkIn)}]] – [[${@fmt.date(booking.checkOut)}]]</td>
+                        <td th:text="${booking.guests}">1</td>
+                        <td th:text="${@fmt.price(booking.totalPrice)}">₹0</td>
+                        <td><span class="status-badge" th:classappend="'status-' + ${booking.displayStatus}" th:text="${booking.displayStatus}">completed</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </th:block>
+</div>
+</th:block>
+</body>
+</html>

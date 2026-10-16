@@ -1,0 +1,10 @@
+<!--
+    Horizontal list of category icons (views/includes/category-bar.ejs).
+    `links` comes from web/CategoryBar: each has a label, an icon, a ready-made URL and whether it's active.
+    Use it with:  <div th:replace="~{includes/category-bar :: categoryBar(${categoryLinks})}"></div>
+-->
+<div th:fragment="categoryBar(links)" class="category-bar">
+    <a th:each="link : ${links}" th:href="${link.url}" class="category-item" th:classappend="${link.active} ? 'active'">
+        <i th:class="${link.icon}"></i><span th:text="${link.label}">All</span>
+    </a>
+</div>

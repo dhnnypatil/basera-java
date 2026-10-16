@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<!--
+    Search results (views/listings/index.ejs).
+    filters = dto/ListingFilters (the cleaned query string), nights = stay length when dates were picked,
+    categoryLinks = web/CategoryBar links that keep the current filters.
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layouts/boilerplate :: layout(~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="container">
+    <div th:replace="~{includes/category-bar :: categoryBar(${categoryLinks})}"></div>
+
+    <!-- ===== Filters (submits as GET, so every search is a shareable URL) ===== -->
+    <form class="filter-panel mt-3" th:action="@{/listings}" method="GET">
+        <input th:if="${filters.category != null}" type="hidden" name="category" th:value="${filters.category}">
+        <div class="row g-2 align-items-end">
+            <div class="col-lg-3 col-md-6">
+                <label for="f-q">Where</label>
+                <input id="f-q" name="q" class="form-control" placeholder="City, country or title" th:value="${filters.q}">
+            </div>
+            <div class="col-lg-2 col-6">
+                <label for="f-in">Check in</label>
+                <input id="f-in" name="checkIn" type="date" class="form-control" th:min="${@fmt.todayIso()}" th:value="${filters.get('checkIn')}" data-checkin>
+            </div>
+            <div class="col-lg-2 col-6">
+                <label for="f-out">Check out</label>
+                <input id="f-out" name="checkOut" type="date" class="form-control" th:min="${@fmt.todayIso()}" th:value="${filters.get('checkOut')}" data-checkout>
+            </div>
+            <div class="col-lg-1 col-4">
+                <label for="f-guests">Guests</label>
+                <input id="f-guests" name="guests" type="number" min="1" max="20" class="form-control" th:value="${filters.get('guests')}">
+            </div>
+            <div class="col-lg-1 col-4">
+                <label for="f-min">Min ₹</label>
+                <input id="f-min" name="minPrice" type="number" min="0" class="form-control" th:value="${filters.get('minPrice')}">
+            </div>
+            <div class="col-lg-1 col-4">
+                <label for="f-max">Max ₹</label>
+                <input id="f-max" name="maxPrice" type="number" min="0" class="form-control" th:value="${filters.get('maxPrice')}">
+            </div>
+            <div class="col-lg-2 col-12 d-flex gap-2">
+                <button class="btn btn-brand flex-fill"><i class="fa-solid fa-magnifying-glass me-1"></i>Search</button>
+                <a th:unless="${filters.empty}" th:href="@{/listings}" class="btn btn-outline-ink" title="Clear all filters"><i class="fa-solid fa-xmark"></i></a>
+            </div>
+        </div>
+    </form>
+
+    <!-- ===== Results header ===== -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-4 mb-3">
+        <div class="fw-semibold">
+            [[${@fmt.plural(#lists.size(listings), 'stay', 'stays')}]]
+            <span th:if="${nights > 0}" class="text-muted-ll fw-normal">· free for [[${@fmt.plural(nights, 'night', 'nights')}]] ([[${@fmt.date(filters.checkIn)}]] – [[${@fmt.date(filters.checkOut)}]])</span>
+        </div>
+        <form th:action="@{/listings}" method="GET" class="d-flex align-items-center gap-2">
+            <!-- Keep every other filter when only the sort order changes -->
+            <th:block th:each="entry : ${filters.params}">
+                <input th:if="${entry.key != 'sort'}" type="hidden" th:name="${entry.key}" th:value="${entry.value}">
+            </th:block>
+            <label for="sort" class="small text-muted-ll text-nowrap">Sort by</label>
+            <select id="sort" name="sort" class="form-select form-select-sm" data-autosubmit>
+                <option value="newest" th:selected="${filters.sort == 'newest'}">Newest</option>
+                <option value="rating" th:selected="${filters.sort == 'rating'}">Top rated</option>
+                <option value="price_asc" th:selected="${filters.sort == 'price_asc'}">Price: low to high</option>
+                <option value="price_desc" th:selected="${filters.sort == 'price_desc'}">Price: high to low</option>
+            </select>
+        </form>
+    </div>
+
+    <!-- ===== Results grid ===== -->
+    <div th:if="${listings.empty}" class="empty-state">
+        <i class="fa-solid fa-magnifying-glass-location d-block"></i>
+        <h2 class="h5 fw-bold text-dark">No stays match your search</h2>
+        <p>Try different dates, a wider price range, or another category.</p>
+        <a th:href="@{/listings}" class="btn btn-outline-ink">Clear filters</a>
+    </div>
+    <div th:unless="${listings.empty}" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4">
+        <div class="col" th:each="listing : ${listings}">
+            <a th:replace="~{includes/listing-card :: card(${listing}, ${nights})}"></a>
+        </div>
+    </div>
+</div>
+</th:block>
+</body>
+</html>

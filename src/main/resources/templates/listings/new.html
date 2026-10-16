@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<!-- Create a listing (views/listings/new.ejs) -->
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layouts/boilerplate :: layout(~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="container my-4" style="max-width: 760px;">
+    <h1 class="h3 fw-bold">List your place</h1>
+    <p class="text-muted-ll mb-4">Tell guests about your space. You can edit everything later from your dashboard.</p>
+    <form th:replace="~{includes/listing-form :: listingForm(@{/listings}, 'post', 'Publish listing', ${listingForm}, null)}"></form>
+</div>
+</th:block>
+</body>
+</html>

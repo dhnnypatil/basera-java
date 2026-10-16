@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!-- Change a booking's dates or guests (views/bookings/edit.ejs) -->
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layouts/boilerplate :: layout(~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="container my-4" style="max-width: 760px;" th:with="listing=${booking.listing}">
+    <a th:href="@{/bookings}" class="text-muted-ll small text-decoration-none"><i class="fa-solid fa-arrow-left me-1"></i>Back to my trips</a>
+    <h1 class="h3 fw-bold mt-2 mb-4">Change your booking</h1>
+
+    <div class="d-flex align-items-center gap-3 mb-4 p-3 border rounded-4">
+        <img th:src="${listing.image.url()}" alt="" class="thumb" style="width: 96px; height: 72px;">
+        <div>
+            <div class="fw-bold" th:text="${listing.title}">Title</div>
+            <div class="text-muted-ll small">[[${listing.location}]], [[${listing.country}]] · [[${@fmt.price(booking.pricePerNight)}]] / night</div>
+        </div>
+    </div>
+
+    <form th:action="@{/bookings/{id}(id=${booking.id})}" th:method="put" class="needs-validation" novalidate>
+        <div class="row">
+            <div class="col-md-5 mb-3">
+                <label for="checkIn" class="form-label">Check-in</label>
+                <input id="checkIn" name="checkIn" type="date" class="form-control" th:min="${@fmt.todayIso()}" th:value="${@fmt.dateInput(booking.checkIn)}" required data-checkin>
+            </div>
+            <div class="col-md-5 mb-3">
+                <label for="checkOut" class="form-label">Check-out</label>
+                <input id="checkOut" name="checkOut" type="date" class="form-control" th:min="${@fmt.todayIso()}" th:value="${@fmt.dateInput(booking.checkOut)}" required data-checkout>
+            </div>
+            <div class="col-md-2 mb-3">
+                <label for="guests" class="form-label">Guests</label>
+                <input id="guests" name="guests" type="number" class="form-control" min="1" th:max="${listing.maxGuests}" th:value="${booking.guests}" required>
+            </div>
+        </div>
+        <p class="text-muted-ll small">The total is recalculated at [[${@fmt.price(booking.pricePerNight)}]] per night (the price when you booked) plus the service fee.</p>
+        <button class="btn btn-brand px-4">Save changes</button>
+    </form>
+</div>
+</th:block>
+</body>
+</html>
